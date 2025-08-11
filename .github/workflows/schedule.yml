@@ -1,0 +1,22 @@
+on:
+  schedule:
+    - cron: "* * * * *"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run sync-ci
+        run: node ./dist/commands/sync-ci.js
+        env:
+          GIT_TERMINAL_PROMPT: 0
+          GH_PAT_FOR_GHIO: ${{ secrets.GH_PAT_FOR_GHIO }}

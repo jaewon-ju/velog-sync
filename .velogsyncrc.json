@@ -1,0 +1,8 @@
+{
+  "velogUsername": "jaewon-ju",
+  "targetRepoUrl": "https://github.com/jaewon-ju/jaewon-ju.github.io",
+  "githubIoRepoPath": "/Users/Ruffles/Projects/jaewon-ju.github.io",
+  "postsDir": "_posts",
+  "branch": "main",
+  "commitMessage": "chore(velog-sync): update {added} added, {updated} updated"
+}
