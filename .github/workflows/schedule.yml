@@ -20,7 +20,7 @@ jobs:
         run: npm run build
 
       - name: Run sync-ci
-        run: velog-sync sync-ci
+        run: npm link && velog-sync sync-ci
         env:
           GIT_TERMINAL_PROMPT: 0
           GH_PAT_FOR_GHIO: ${{ secrets.GH_PAT_FOR_GHIO }}
