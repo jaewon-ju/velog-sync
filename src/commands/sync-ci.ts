@@ -109,7 +109,9 @@ const syncCiCommand = new Command("sync-ci")
         `title: "${post.title}"\n` +
         `description: "${post.short_description.replace(/\n/g, " ")}"\n` +
         `date: ${post.released_at}\n` +
+        `categories: ${post.series?.map((s: any) => s.name) || []}\n` +
         `tags: ${JSON.stringify(post.tags)}\n` +
+        `toc: true\n` +
         `slug: "${post.url_slug}"\n` +
         (post.thumbnail ? `thumbnail: "${post.thumbnail}"\n` : "") +
         (post.series
@@ -148,6 +150,13 @@ const syncCiCommand = new Command("sync-ci")
     if (cfg.authorName && cfg.authorEmail) {
       await repoGit.addConfig("user.name", cfg.authorName);
       await repoGit.addConfig("user.email", cfg.authorEmail);
+    } else {
+      // 기본값 설정
+      await repoGit.addConfig("user.name", "github-actions[bot]");
+      await repoGit.addConfig(
+        "user.email",
+        "github-actions[bot]@users.noreply.github.com"
+      );
     }
 
     const commitMsg = (cfg.commitMessage || "chore(velog-sync): sync")
