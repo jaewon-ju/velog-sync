@@ -1,53 +1,42 @@
 import { Command } from "commander";
 import { mkdir, writeFile, readFile } from "fs/promises";
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
 import path from "path";
-import { request } from "undici";
-import { simpleGit } from "simple-git";
 import { createPostsQuery, createPostDetailQuery } from "../utils/graphql.js";
+import { request } from "undici";
 import { computeHash } from "../utils/hash.js";
 import { loadConfig } from "../lib/config.js";
+import { simpleGit } from "simple-git";
 
-// github action에서만 사용하는 명령어
-const syncCiCommand = new Command("sync-ci")
-  .description("Fetch Velog posts and sync to github.io repo (CI mode)")
+/**
+ * Velog 글을 백업하는 `sync` 명령어 정의
+ */
+const syncCommand = new Command("sync")
+  .description("Fetch all posts from Velog and save them as Markdown")
   .action(async () => {
     const cfg = await loadConfig().catch(() => null);
 
     if (!cfg) {
-      throw new Error("설정이 없습니다. 먼저 `velog-sync init`을 실행하세요.");
+      throw new Error(
+        "설정이 없습니다. 먼저 `velog-sync init`을 실행하거나 username을 인자로 전달하세요."
+      );
     }
-    if (!cfg.targetRepoUrl) {
-      throw new Error("targetRepoUrl이 설정되어 있지 않습니다.");
-    }
-
-    const token = process.env.GH_PAT_FOR_GHIO;
-    if (!token) {
-      throw new Error("환경변수 GH_PAT_FOR_GHIO 가 설정되어 있지 않습니다.");
-    }
-
-    // 토큰이 포함된 URL로 변환
-    const authedUrl = injectTokenToRepoUrl(cfg.targetRepoUrl, token);
 
     const username = cfg.velogUsername;
     const graphqlEndpoint = "https://v2.velog.io/graphql";
 
-    // CI 임시 작업 디렉토리
-    const workDir = path.resolve(process.cwd(), "github-io-repo");
-    const git = simpleGit();
-
-    console.log(`📦 Cloning target repo: ${cfg.targetRepoUrl}`);
-    await git.clone(authedUrl, workDir);
-    const repoGit = simpleGit({ baseDir: workDir });
-
-    const postsRoot = path.join(workDir, cfg.postsDir || "_posts");
+    // ✅ github.io 리포 내 postsDir로 저장
+    const repoPath = cfg.githubIoRepoPath;
+    const postsRoot = path.join(repoPath, cfg.postsDir || "_posts");
+    if (!existsSync(repoPath))
+      throw new Error(`github.io repo 경로가 존재하지 않음: ${repoPath}`);
     await mkdir(postsRoot, { recursive: true });
 
     console.log(`🔍 Fetching posts for @${username}...`);
     const posts: any[] = [];
     let cursor: string | null = null;
 
-    // 모든 게시글 페이지네이션
+    // 📥 모든 게시글 페이지네이션
     while (true) {
       const query = createPostsQuery(username, cursor);
       const res = await request(graphqlEndpoint, {
@@ -57,9 +46,10 @@ const syncCiCommand = new Command("sync-ci")
       });
       const json = (await res.body.json()) as any;
       const fetched = json?.data?.posts;
-      if (!fetched || fetched.length === 0) break;
 
+      if (!fetched || fetched.length === 0) break;
       posts.push(...fetched);
+
       if (fetched.length < 20) break;
       cursor = fetched[fetched.length - 1].id;
     }
@@ -70,7 +60,9 @@ const syncCiCommand = new Command("sync-ci")
       updated = 0,
       skipped = 0;
 
+    // 각 게시글 처리 → github.io/_posts/<YYYY-MM-DD-slug>.md
     for (const postMeta of posts) {
+      // 상세
       const detailQuery = createPostDetailQuery(username, postMeta.url_slug);
       const res = await request(graphqlEndpoint, {
         method: "POST",
@@ -81,7 +73,7 @@ const syncCiCommand = new Command("sync-ci")
       const post = json?.data?.post;
 
       if (!post || !post.body) {
-        console.warn(`⚠️ 글 "${postMeta.title}"를 가져오지 못했습니다.`);
+        console.warn(`⚠️  글 "${postMeta.title}"를 가져오지 못했습니다.`);
         continue;
       }
 
@@ -104,14 +96,13 @@ const syncCiCommand = new Command("sync-ci")
 
       if (!shouldUpdate) continue;
 
+      // ✅ Jekyll 호환 front matter 유지(필요 시 layout/date/slug 추가)
       const frontmatter =
         `---\n` +
         `title: "${post.title}"\n` +
         `description: "${post.short_description.replace(/\n/g, " ")}"\n` +
         `date: ${post.released_at}\n` +
-        `categories: ${[post.series?.name]}\n` +
         `tags: ${JSON.stringify(post.tags)}\n` +
-        `toc: true\n` +
         `slug: "${post.url_slug}"\n` +
         (post.thumbnail ? `thumbnail: "${post.thumbnail}"\n` : "") +
         (post.series
@@ -120,21 +111,31 @@ const syncCiCommand = new Command("sync-ci")
         `velogSync:\n  lastSyncedAt: ${now}\n  hash: "${hash}"\n` +
         `---\n`;
 
-      await writeFile(filePath, frontmatter + "\n" + post.body, "utf-8");
+      const fullContent = frontmatter + "\n" + post.body;
+      await writeFile(filePath, fullContent, "utf-8");
 
-      if (existsSync(filePath)) updated++;
-      else added++;
-
+      // created vs updated 간단 판정
+      if (shouldUpdate) {
+        if (existsSync(filePath)) updated++;
+        else added++;
+      }
       console.log(`💾 ${post.title} 저장 완료`);
     }
 
-    // git commit & push
-    await repoGit.fetch().catch(() => {});
-    await repoGit.checkout(cfg.branch || "main").catch(() => {});
-    await repoGit.pull("origin", cfg.branch || "main").catch(() => {});
+    // 🔁 git add/commit/push
+    const git = simpleGit({ baseDir: repoPath });
+    try {
+      await git.fetch().catch(() => {});
+      const branch = cfg.branch || "main";
+      await git.checkout(branch).catch(() => {});
+      await git.pull("origin", branch).catch(() => {});
+    } catch (e) {
+      console.warn("⚠️ git fetch/pull 단계에서 경고:", e);
+    }
 
-    await repoGit.add(".");
-    const status = await repoGit.status();
+    await git.add(".");
+    // 변경 여부 확인
+    const status = await git.status();
     const nothingToCommit =
       status.created.length === 0 &&
       status.modified.length === 0 &&
@@ -148,31 +149,22 @@ const syncCiCommand = new Command("sync-ci")
     }
 
     if (cfg.authorName && cfg.authorEmail) {
-      await repoGit.addConfig("user.name", cfg.authorName);
-      await repoGit.addConfig("user.email", cfg.authorEmail);
-    } else {
-      // 기본값 설정
-      await repoGit.addConfig("user.name", "github-actions[bot]");
-      await repoGit.addConfig(
-        "user.email",
-        "github-actions[bot]@users.noreply.github.com"
-      );
+      await git.addConfig("user.name", cfg.authorName);
+      await git.addConfig("user.email", cfg.authorEmail);
     }
 
-    const commitMsg = (cfg.commitMessage || "chore(velog-sync): sync")
+    const msgTmpl = cfg.commitMessage || "chore(velog-sync): sync";
+    const commitMsg = msgTmpl
       .replace("{added}", String(added))
       .replace("{updated}", String(updated));
 
-    await repoGit.commit(commitMsg);
-    await repoGit.push("origin", cfg.branch || "main");
+    await git.commit(commitMsg);
+    await git.push("origin", cfg.branch || "main");
     console.log(`🚀 push 완료: ${commitMsg}`);
   });
 
-function injectTokenToRepoUrl(repoUrl: string, token: string) {
-  const url = new URL(repoUrl);
-  url.username = "x-access-token";
-  url.password = token;
-  return url.toString();
+function sanitize(title: string): string {
+  return title.replace(/[\\/:*?"<>|]/g, "").slice(0, 100);
 }
 
 function toJekyllFilename(post: { url_slug: string; released_at: string }) {
@@ -184,4 +176,4 @@ function toJekyllFilename(post: { url_slug: string; released_at: string }) {
   return `${yyyy}-${mm}-${dd}-${slug}.md`;
 }
 
-export default syncCiCommand;
+export default syncCommand;

@@ -1,0 +1,40 @@
+{
+  "name": "velog-sync",
+  "version": "1.0.0",
+  "description": "Sync Velog posts to GitHub Pages",
+  "main": "index.js",
+  "bin": {
+    "velog-sync": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "chmod +x dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^24.2.0",
+    "@types/prompts": "^2.4.9",
+    "@types/xml2js": "^0.4.14",
+    "path": "^0.12.7",
+    "prompts": "^2.4.2",
+    "simple-git": "^3.28.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "axios": "^1.11.0",
+    "commander": "^14.0.0",
+    "fs": "^0.0.1-security",
+    "inquirer": "^12.9.1",
+    "node-fetch": "^3.3.2",
+    "open": "^10.2.0",
+    "undici": "^7.13.0",
+    "xml2js": "^0.6.2"
+  }
+}
