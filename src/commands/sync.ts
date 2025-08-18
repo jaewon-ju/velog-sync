@@ -105,9 +105,7 @@ const syncCommand = new Command("sync")
         `tags: ${JSON.stringify(post.tags)}\n` +
         `slug: "${post.url_slug}"\n` +
         (post.thumbnail ? `thumbnail: "${post.thumbnail}"\n` : "") +
-        (post.series
-          ? `series:\n  id: ${post.series.id}\n  name: "${post.series.name}"\n`
-          : "") +
+        (post.series ? `categories: ${[post.series.name]}\n` : "") +
         `velogSync:\n  lastSyncedAt: ${now}\n  hash: "${hash}"\n` +
         `---\n`;
 

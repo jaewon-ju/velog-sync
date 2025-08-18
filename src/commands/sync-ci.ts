@@ -109,14 +109,11 @@ const syncCiCommand = new Command("sync-ci")
         `title: "${post.title}"\n` +
         `description: "${post.short_description.replace(/\n/g, " ")}"\n` +
         `date: ${post.released_at}\n` +
-        `categories: ${[post.series?.name]}\n` +
         `tags: ${JSON.stringify(post.tags)}\n` +
         `toc: true\n` +
         `slug: "${post.url_slug}"\n` +
         (post.thumbnail ? `thumbnail: "${post.thumbnail}"\n` : "") +
-        (post.series
-          ? `series:\n  id: ${post.series.id}\n  name: "${post.series.name}"\n`
-          : "") +
+        (post.series ? `categories: ${[post.series.name]}\n` : "") +
         `velogSync:\n  lastSyncedAt: ${now}\n  hash: "${hash}"\n` +
         `---\n`;
 
