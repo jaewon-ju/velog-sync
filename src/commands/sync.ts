@@ -106,6 +106,7 @@ const syncCommand = new Command("sync")
         `slug: "${post.url_slug}"\n` +
         (post.thumbnail ? `thumbnail: "${post.thumbnail}"\n` : "") +
         (post.series ? `categories: ${[post.series.name]}\n` : "") +
+        `toc: true\n` +
         `velogSync:\n  lastSyncedAt: ${now}\n  hash: "${hash}"\n` +
         `---\n`;
 
