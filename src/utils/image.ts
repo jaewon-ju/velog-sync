@@ -1,9 +1,12 @@
 import { request } from "undici";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { computeHash } from "./hash.js";
 
 async function downloadImage(url: string, outputDir: string): Promise<string> {
-  const filename = path.basename(url).split("?")[0] as string; // 쿼리 제거
+  const ext = path.extname(url).split("?")[0] || ".jpg"; // 확장자 추출
+  const hash = computeHash(url); // URL 기반 hash
+  const filename = `${hash}${ext}`;
   const outputPath = path.join(outputDir, filename);
 
   await mkdir(outputDir, { recursive: true });
@@ -12,7 +15,7 @@ async function downloadImage(url: string, outputDir: string): Promise<string> {
   const buffer = Buffer.from(await res.body.arrayBuffer());
   await writeFile(outputPath, buffer);
 
-  // 저장 후 리턴할 Markdown용 경로
+  // Markdown에서 참조할 경로 반환
   return `/assets/posts/${filename}`;
 }
 
