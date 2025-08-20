@@ -1,6 +1,6 @@
 {
   "name": "velog-sync",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Sync Velog posts to GitHub Pages",
   "main": "index.js",
   "bin": {
