@@ -66,7 +66,7 @@ const syncCommand = new Command("sync")
     const assetsDir = path.join(repoPath, "assets/posts");
     await mkdir(assetsDir, { recursive: true });
 
-    console.log(`🔍 Fetching posts for @${username}...`);
+    console.log(`🔍 Fetching posts for ${username}...`);
 
     // 4️⃣ Velog 글 가져오기
     const posts: any[] = [];

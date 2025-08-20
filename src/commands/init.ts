@@ -20,7 +20,7 @@ const initCommand = new Command("init")
         {
           type: "input",
           name: "velog",
-          message: "Velog 주소 또는 아이디(@username):",
+          message: "Velog 주소 또는 아이디(username):",
           validate: (input) => {
             if (!input || input.trim() === "") {
               return "필수 입력입니다.";
