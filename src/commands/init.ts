@@ -91,9 +91,9 @@ const initCommand = new Command("init")
         {
           type: "input",
           name: "commitMessage",
-          message: "커밋 메시지 템플릿:",
-          default: "chore(velog-sync): update {added} added, {updated} updated",
-          filter: (input) => input?.trim() || "chore(velog-sync): sync",
+          message: "커밋 메시지:",
+          default: "velog-sync: synchronized",
+          filter: (input) => input?.trim() || "velog-sync: synchronized",
         },
       ]);
 
