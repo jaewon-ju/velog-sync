@@ -1,0 +1,11 @@
+node_modules
+.git
+.velogsyncrc.json
+.github
+.vscode
+.prettierrc
+.prettierignore
+dist
+_site
+.jekyll-cache
+.gitignore

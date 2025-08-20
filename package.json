@@ -15,17 +15,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@types/inquirer": "^9.0.9",
-    "@types/node": "^24.2.0",
-    "@types/prompts": "^2.4.9",
-    "@types/xml2js": "^0.4.14",
-    "path": "^0.12.7",
-    "prompts": "^2.4.2",
-    "simple-git": "^3.28.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
-  },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
     "axios": "^1.11.0",
@@ -35,6 +24,15 @@
     "node-fetch": "^3.3.2",
     "open": "^10.2.0",
     "undici": "^7.13.0",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^24.2.0",
+    "@types/prompts": "^2.4.9",
+    "@types/xml2js": "^0.4.14",
+    "path": "^0.12.7",
+    "prompts": "^2.4.2",
+    "simple-git": "^3.28.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }
