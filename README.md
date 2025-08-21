@@ -15,20 +15,16 @@ Velog와 블로그를 동시에 운영하면서, 글 작성 후 별도 복사 �
 
 ## 설치
 
-1. Velog-Sync 저장소를 클론합니다.
-
-```bash
-git clone https://github.com/jaewon-ju/velog-sync
-cd velog-sync
-```
+1. Velog-Sync 저장소를 **Fork** 합니다.  
+   - GitHub 페이지에서 `Fork` 버튼을 눌러 본인 계정으로 저장소를 복사하세요.  
+   - 예: `https://github.com/<your-username>/velog-sync`
 
 <br>
 
-2. 본인 GitHub 계정에 새 리포지토리를 생성합니다. (예: my-velog-sync)
+2. fork한 저장소를 로컬로 클론합니다.
 ```bash
-git remote remove origin
-git remote add origin https://github.com/<your-username>/my-velog-sync.git
-git push -u origin main
+git clone https://github.com/<your-username>/velog-sync
+cd velog-sync
 ```
 
 <br>
